@@ -1,24 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main() {
-    char filename[100];
+void swap_min_max(const char *filename);
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Использование: %s <имя_файла>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    const char *filename = argv[1];
     FILE *file;
     int number;
     int min = 11, max = -1;
     int sum = 0, count = 0;
-
-
-    printf("Введите название файла: ");
-    scanf("%99s", filename);
-
 
     file = fopen(filename, "wb");
     if (file == NULL) {
         perror("Ошибка при открытии файла");
         return EXIT_FAILURE;
     }
-
 
     printf("Введите целые числа от 0 до 10 (введите -1 для выхода):\n");
     while (1) {
@@ -37,9 +38,7 @@ int main() {
         if (number > max) max = number;
     }
 
-
     fclose(file);
-
 
     file = fopen(filename, "rb");
     if (file == NULL) {
@@ -47,12 +46,10 @@ int main() {
         return EXIT_FAILURE;
     }
 
-
     while (fread(&number, sizeof(int), 1, file) == 1) {
         if (number == min || number == max) {
-            // Пропускаем минимальное или максимальное значение
             if (number == min) {
-                min = -1; // стопаемся чтобы удалить только один экземпляр
+                min = -1; // удаляем только один экземпляр
             } else if (number == max) {
                 max = -1;
             }
@@ -64,12 +61,11 @@ int main() {
 
     fclose(file);
 
-
     if (count > 0) {
         printf("Среднее арифметическое оставшихся чисел: %.2f\n", (double)sum / count);
     } else {
         printf("Нет оставшихся чисел для вычисления среднего арифметического.\n");
-    };
+    }
 
     swap_min_max(filename);
     return EXIT_SUCCESS;
@@ -100,14 +96,13 @@ void swap_min_max(const char *filename) {
         current_position += sizeof(int);
     }
 
-
     if (min_position == -1 || max_position == -1) {
         printf("Не найдены минимальные или максимальные значения.\n");
         fclose(file);
         return;
     }
 
-    // меняем местами мин  макс
+    // Меняем местами мин и макс
     fseek(file, min_position, SEEK_SET);
     fread(&number, sizeof(int), 1, file);
     int temp_min = number;
@@ -116,7 +111,7 @@ void swap_min_max(const char *filename) {
     fread(&number, sizeof(int), 1, file);
     int temp_max = number;
 
-    // записываем обратно
+    // Записываем обратно
     fseek(file, min_position, SEEK_SET);
     fwrite(&temp_max, sizeof(int), 1, file);
 
@@ -125,6 +120,8 @@ void swap_min_max(const char *filename) {
 
     fclose(file);
     printf("Минимальное и максимальное значения успешно поменяны местами.\n");
+
+    // Вывод содержимого файла
     file = fopen(filename, "rb");
     while (fread(&number, sizeof(int), 1, file) == 1) {
         printf("%d ", number);
@@ -133,3 +130,5 @@ void swap_min_max(const char *filename) {
 
     fclose(file);
 }
+//   gcc "lab(1).c" -o lab1
+//  ./lab1 data.bin
